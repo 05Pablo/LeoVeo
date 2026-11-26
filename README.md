@@ -19,6 +19,6 @@ Datos de ejemplo: `docker compose exec app npm run seed` (admin@leoveo.es / Admi
 
 ## Autores
 
-- Nombre Apellido 1 — @usuario1
-- Nombre Apellido 2 — @usuario2
-- Nombre Apellido 3 — @usuario3
+- José Ignacio Hernández Pablos — @pepehernandez05
+- Alberto Olmos Alcaide — @Godalberto10
+- Pablo Gallego García — @05Pablo
