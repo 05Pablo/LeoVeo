@@ -17,6 +17,6 @@ Sin Docker: `npm install` y `npm run dev` (necesita MongoDB en `MONGO_URI`).
 
 ## Autores
 
-- Nombre Apellido 1 — @usuario1
-- Nombre Apellido 2 — @usuario2
-- Nombre Apellido 3 — @usuario3
+- Pablo Gallego García — @05Pablo
+- José Ignacio Hernandez — @pepehernandez05
+- Alberto Olmos Alcaide — @Godalberto10
