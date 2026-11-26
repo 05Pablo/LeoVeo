@@ -5,7 +5,7 @@ const createApp = require('./app');
 
 async function main() {
   await connectDB();
-  const app = createApp();
+  const app = createApp({ mongoClient: mongoose.connection.getClient() });
 
   const server = app.listen(env.PORT, () => {
     console.log(`[server] LeoVeo escuchando en http://localhost:${env.PORT} (${env.NODE_ENV})`);
