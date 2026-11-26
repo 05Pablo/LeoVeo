@@ -19,3 +19,15 @@ exports.updateBio = async (req, res) => {
   }
   res.redirect(`/users/${req.user.username}`);
 };
+
+// --- Administración ---
+exports.adminUsers = async (req, res) => {
+  const users = await userService.listUsers();
+  res.render('admin/users', { title: 'Gestión de usuarios', users });
+};
+
+exports.adminSetRole = async (req, res) => {
+  const user = await userService.setRole(req.params.id, String(req.body.role), req.user);
+  req.flash('success', `@${user.username} ahora tiene el rol "${user.role}"`);
+  res.redirect('/admin/users');
+};

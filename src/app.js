@@ -6,13 +6,16 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 
 const env = require('./config/env');
+const sanitize = require('./middlewares/sanitize');
 const flash = require('./middlewares/flash');
 const { csrfToken } = require('./middlewares/csrf');
 const { loadUser } = require('./middlewares/auth');
 const { notFound, errorHandler } = require('./middlewares/errorHandler');
 const { SESSION_COOKIE } = require('./utils/session');
 const { TYPE_LABELS } = require('./utils/helpers');
+const { API_PREFIX } = require('./config/api');
 const webRoutes = require('./routes/web');
+const docsRoutes = require('./routes/docs');
 const apiRoutes = require('./routes/api');
 
 /**
@@ -26,11 +29,17 @@ function createApp({ mongoClient } = {}) {
   app.set('views', path.join(__dirname, 'views'));
   app.set('view engine', 'ejs');
   app.disable('x-powered-by');
+  // Solo se confía en X-Forwarded-For si hay un proxy inverso delante (evita falsear la IP)
+  if (env.TRUST_PROXY) app.set('trust proxy', env.TRUST_PROXY);
 
   // Helpers disponibles en todas las vistas
   app.locals.TYPE_LABELS = TYPE_LABELS;
   app.locals.formatDate = (d) => new Date(d).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
   app.locals.stars = (n) => '★'.repeat(Math.round(n)) + '☆'.repeat(5 - Math.round(n));
+
+  // --- Documentación interactiva de la API (Swagger UI) ---
+  // Va antes del helmet global porque Swagger UI necesita una CSP propia
+  app.use('/api-docs', docsRoutes);
 
   // --- Seguridad: cabeceras HTTP (CSP, X-Frame-Options, HSTS...) ---
   app.use(helmet({
@@ -70,6 +79,7 @@ function createApp({ mongoClient } = {}) {
     },
   }));
 
+  app.use(sanitize);
   app.use(flash);
   app.use(csrfToken);
   app.use(loadUser);
@@ -79,7 +89,8 @@ function createApp({ mongoClient } = {}) {
   });
 
   // --- Rutas ---
-  app.use('/api', apiRoutes);
+  // API versionada: un cambio incompatible irá en /api/v2 sin romper a los clientes de v1
+  app.use(API_PREFIX, apiRoutes);
   app.use('/', webRoutes);
 
   // --- Errores ---

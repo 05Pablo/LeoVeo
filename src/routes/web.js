@@ -2,6 +2,7 @@ const express = require('express');
 const { asyncHandler: h } = require('../utils/helpers');
 const { requireAuth, requireRole, requireGuest } = require('../middlewares/auth');
 const { verifyCsrf } = require('../middlewares/csrf');
+const { authLimiter } = require('../middlewares/rateLimit');
 const v = require('../validators');
 
 const auth = require('../controllers/authController');
@@ -18,9 +19,9 @@ router.get('/', h(works.home));
 
 // Autenticación
 router.get('/register', requireGuest, auth.showRegister);
-router.post('/register', requireGuest, v.registerRules, h(auth.register));
+router.post('/register', requireGuest, authLimiter, v.registerRules, h(auth.register));
 router.get('/login', requireGuest, auth.showLogin);
-router.post('/login', requireGuest, v.loginRules, h(auth.login));
+router.post('/login', requireGuest, authLimiter, v.loginRules, h(auth.login));
 router.post('/logout', requireAuth, h(auth.logout));
 
 // Obras
@@ -42,5 +43,9 @@ router.post('/reviews/:id/delete', requireAuth, h(reviews.destroy));
 router.get('/me', requireAuth, users.me);
 router.post('/me/bio', requireAuth, v.bioRules, h(users.updateBio));
 router.get('/users/:username', h(users.profile));
+
+// Administración
+router.get('/admin/users', requireRole('admin'), h(users.adminUsers));
+router.post('/admin/users/:id/role', requireRole('admin'), h(users.adminSetRole));
 
 module.exports = router;

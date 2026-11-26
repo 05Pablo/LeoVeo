@@ -20,7 +20,7 @@
 <form class="filters" action="/works" method="GET" role="search">
   <div class="field">
     <label for="q">Buscar</label>
-    <input id="q" name="q" type="search" value="<%= filters.q %>" placeholder="Título, director o autor" maxlength="100">
+    <input id="q" name="q" type="search" value="<%= filters.q %>" placeholder="Título, director o autor" maxlength="100" autocomplete="off" data-autocomplete>
   </div>
   <div class="field">
     <label for="type">Tipo</label>

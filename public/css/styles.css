@@ -225,3 +225,16 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); outline
   .search-hero { flex-direction: column; }
   .stats { margin-left: 0; }
 }
+
+/* ---------- Sugerencias del buscador (fetch) ---------- */
+.ac-wrap { position: relative; }
+.suggestions {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 20;
+  list-style: none; margin: 0; padding: .3rem 0; background: var(--card); color: var(--ink);
+  border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 10px 30px rgba(29, 34, 48, .18);
+  max-width: 560px;
+}
+.suggestions li a { display: flex; flex-direction: column; padding: .5rem .9rem; color: var(--ink); text-decoration: none; }
+.suggestions li a:hover, .suggestions li a.active { background: #fff6eb; }
+.suggestions li a .muted { font-size: .82rem; }
+.suggestion-empty { padding: .5rem .9rem; color: var(--muted); font-size: .9rem; }

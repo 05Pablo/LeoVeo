@@ -1,0 +1,38 @@
+<%- include('../partials/head') %>
+
+<div class="section-head">
+  <h1>Gestión de usuarios</h1>
+  <span class="muted"><%= users.length %> usuarios</span>
+</div>
+
+<div class="table-wrap">
+  <table class="table">
+    <thead>
+      <tr><th>Usuario</th><th>Email</th><th>Alta</th><th>Rol</th><th>Acción</th></tr>
+    </thead>
+    <tbody>
+      <% users.forEach(function (u) { var isSelf = String(u._id) === String(currentUser._id); %>
+        <tr>
+          <td><a href="/users/<%= u.username %>">@<%= u.username %></a></td>
+          <td><%= u.email %></td>
+          <td><%= formatDate(u.createdAt) %></td>
+          <td><span class="badge <%= u.role === 'admin' ? 'badge-admin' : '' %>"><%= u.role %></span></td>
+          <td>
+            <% if (isSelf) { %>
+              <span class="muted">(tú)</span>
+            <% } else { %>
+              <form action="/admin/users/<%= u._id %>/role" method="POST" class="inline-form js-confirm"
+                data-confirm="¿Cambiar el rol de @<%= u.username %>?">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="role" value="<%= u.role === 'admin' ? 'user' : 'admin' %>">
+                <button type="submit" class="btn btn-ghost btn-small"><%= u.role === 'admin' ? 'Quitar admin' : 'Hacer admin' %></button>
+              </form>
+            <% } %>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('../partials/foot') %>

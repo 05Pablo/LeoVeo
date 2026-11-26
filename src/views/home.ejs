@@ -6,7 +6,7 @@
     <p class="lead">LeoVeo es una comunidad para reseñar películas y libros, descubrir qué merece la pena y llevar tu propio registro.</p>
     <form action="/works" method="GET" class="search-hero" role="search">
       <label for="q" class="sr-only">Buscar</label>
-      <input id="q" name="q" type="search" placeholder="Busca un título, director o autor…" maxlength="100">
+      <input id="q" name="q" type="search" placeholder="Busca un título, director o autor…" maxlength="100" autocomplete="off" data-autocomplete>
       <button type="submit" class="btn">Buscar</button>
     </form>
     <% if (!locals.currentUser) { %>
