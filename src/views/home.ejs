@@ -2,8 +2,13 @@
 
 <section class="hero">
   <div>
-    <h1>LeoVeo</h1>
-    <p class="lead">Reseñas de películas y libros. Próximamente.</p>
+    <h1>Lo que lees. Lo que ves. Lo que opinas.</h1>
+    <p class="lead">LeoVeo es una comunidad para reseñar películas y libros.</p>
+    <% if (locals.currentUser) { %>
+      <p>Has iniciado sesión como <strong>@<%= currentUser.username %></strong>. Muy pronto podrás añadir obras y reseñas.</p>
+    <% } else { %>
+      <p><a href="/register">Crea una cuenta</a> o <a href="/login">inicia sesión</a>.</p>
+    <% } %>
   </div>
 </section>
 

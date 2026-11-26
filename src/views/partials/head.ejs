@@ -4,14 +4,33 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><%= typeof title !== 'undefined' ? title + ' · ' : '' %>LeoVeo</title>
+  <meta name="description" content="LeoVeo: reseñas de películas y libros">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/css/styles.css">
+  <script src="/js/main.js" defer></script>
 </head>
 <body>
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
   <header class="site-header">
     <div class="container header-inner">
       <a class="brand" href="/"><img src="/favicon.svg" alt="" width="28" height="28" class="brand-mark"> LeoVeo</a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="menu">Menú</button>
+      <nav id="menu" class="nav" aria-label="Principal">
+        <% if (locals.currentUser) { %>
+          <span class="nav-user">@<%= currentUser.username %></span>
+          <form action="/logout" method="POST" class="inline-form">
+            <input type="hidden" name="_csrf" value="<%= locals.csrfToken %>">
+            <button type="submit" class="link-button">Salir</button>
+          </form>
+        <% } else { %>
+          <a href="/login">Entrar</a>
+          <a href="/register" class="btn btn-small">Crear cuenta</a>
+        <% } %>
+      </nav>
     </div>
   </header>
 
   <main id="contenido" class="container main">
+    <% (locals.flash || []).forEach(function (f) { %>
+      <div class="alert alert-<%= f.type %>" role="<%= f.type === 'error' ? 'alert' : 'status' %>"><%= f.message %></div>
+    <% }) %>

@@ -2,7 +2,7 @@
 
 Aplicación web para reseñar películas y libros (Node.js, Express, EJS y MongoDB).
 
-> 🚧 En desarrollo. Hecho: estructura del proyecto, conexión a MongoDB y Docker.
+> 🚧 En desarrollo. Hecho: estructura MVC, Docker y registro/login con sesiones. Pendiente: obras, reseñas, perfiles, API y administración.
 
 ## Puesta en marcha
 

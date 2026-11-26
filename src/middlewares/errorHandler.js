@@ -40,6 +40,11 @@ function errorHandler(err, req, res, next) {
     return res.status(status).json({ error: message, ...(details ? { details } : {}) });
   }
 
+  // En la web, si no hay sesión se redirige al login en lugar de mostrar 401
+  if (status === 401) {
+    req.flash && req.flash('error', message);
+    return res.redirect('/login');
+  }
   return res.status(status).render('error', { title: 'Error', status, message });
 }
 
