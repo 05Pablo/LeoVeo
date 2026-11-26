@@ -1,0 +1,37 @@
+<%
+  // Variables: review, showWork (bool), redirectTo (string)
+  var currentUser = locals.currentUser;
+  var isAuthor = currentUser && review.author && String(review.author._id || review.author) === String(currentUser._id);
+  var isAdmin = currentUser && currentUser.role === 'admin';
+%>
+<article class="review">
+  <header class="review-head">
+    <span class="stars" aria-label="<%= review.rating %> de 5"><%= stars(review.rating) %></span>
+    <h3><%= review.title %></h3>
+  </header>
+  <% if (locals.showWork && review.work) { %>
+    <p class="muted">sobre <a href="/works/<%= review.work._id %>"><%= review.work.title %></a> (<%= TYPE_LABELS[review.work.type] %>)</p>
+  <% } %>
+  <p class="review-body"><%= review.body %></p>
+  <footer class="review-foot">
+    <span class="muted">
+      <% if (review.author && review.author.username) { %>
+        por <a href="/users/<%= review.author.username %>">@<%= review.author.username %></a> ·
+      <% } %>
+      <%= formatDate(review.createdAt) %>
+      <% if (review.updatedAt && new Date(review.updatedAt) - new Date(review.createdAt) > 60000) { %>(editada)<% } %>
+    </span>
+    <span class="actions">
+      <% if (isAuthor) { %>
+        <a href="/reviews/<%= review._id %>/edit" class="btn btn-ghost btn-small">Editar</a>
+      <% } %>
+      <% if (isAuthor || isAdmin) { %>
+        <form action="/reviews/<%= review._id %>/delete" method="POST" class="inline-form js-confirm" data-confirm="¿Seguro que quieres borrar esta reseña?">
+          <input type="hidden" name="_csrf" value="<%= locals.csrfToken %>">
+          <input type="hidden" name="redirectTo" value="<%= locals.redirectTo || '' %>">
+          <button type="submit" class="btn btn-danger btn-small">Borrar</button>
+        </form>
+      <% } %>
+    </span>
+  </footer>
+</article>

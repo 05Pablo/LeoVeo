@@ -1,0 +1,44 @@
+<%- include('../partials/head') %>
+
+<section class="profile-head">
+  <div class="avatar" aria-hidden="true"><%= profileUser.username.charAt(0).toUpperCase() %></div>
+  <div>
+    <h1>@<%= profileUser.username %>
+      <% if (profileUser.role === 'admin') { %><span class="badge badge-admin">admin</span><% } %>
+    </h1>
+    <p class="muted">Miembro desde <%= formatDate(profileUser.createdAt) %></p>
+    <% if (profileUser.bio) { %><p><%= profileUser.bio %></p><% } %>
+  </div>
+  <dl class="stats">
+    <div><dt>Reseñas</dt><dd><%= stats.reviewCount %></dd></div>
+    <div><dt>Nota media</dt><dd><%= stats.reviewCount ? stats.avgRating.toFixed(1) : '—' %></dd></div>
+  </dl>
+</section>
+
+<% if (isMe) { %>
+  <details class="form-card compact">
+    <summary>Editar mi presentación</summary>
+    <form action="/me/bio" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="field">
+        <label for="bio">Bio</label>
+        <textarea id="bio" name="bio" rows="3" maxlength="300" data-counter><%= profileUser.bio %></textarea>
+      </div>
+      <button type="submit" class="btn btn-small">Guardar</button>
+    </form>
+  </details>
+<% } %>
+
+<section>
+  <h2><%= isMe ? 'Mis reseñas' : 'Reseñas' %></h2>
+  <% if (reviews.length) { %>
+    <% reviews.forEach(function (review) { %>
+      <%- include('../partials/reviewCard', { review: Object.assign({}, review, { author: profileUser }), showWork: true, redirectTo: '/users/' + profileUser.username }) %>
+    <% }) %>
+  <% } else { %>
+    <p class="empty"><%= isMe ? 'Aún no has escrito ninguna reseña.' : 'Este usuario aún no ha escrito reseñas.' %>
+      <% if (isMe) { %><a href="/works">Explora obras</a><% } %></p>
+  <% } %>
+</section>
+
+<%- include('../partials/foot') %>

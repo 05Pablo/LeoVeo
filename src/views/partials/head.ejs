@@ -16,8 +16,12 @@
       <a class="brand" href="/"><img src="/favicon.svg" alt="" width="28" height="28" class="brand-mark"> LeoVeo</a>
       <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="menu">Menú</button>
       <nav id="menu" class="nav" aria-label="Principal">
+        <a href="/works" class="<%= locals.currentPath === '/works' ? 'active' : '' %>">Explorar</a>
+        <a href="/works?type=pelicula">Películas</a>
+        <a href="/works?type=libro">Libros</a>
         <% if (locals.currentUser) { %>
-          <span class="nav-user">@<%= currentUser.username %></span>
+          <a href="/works/new" class="btn btn-small">+ Añadir obra</a>
+          <a href="/users/<%= currentUser.username %>" class="nav-user">@<%= currentUser.username %></a>
           <form action="/logout" method="POST" class="inline-form">
             <input type="hidden" name="_csrf" value="<%= locals.csrfToken %>">
             <button type="submit" class="link-button">Salir</button>

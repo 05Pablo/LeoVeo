@@ -1,0 +1,83 @@
+<%- include('../partials/head') %>
+
+<article class="work-detail">
+  <div class="work-detail-cover">
+    <% if (work.coverUrl) { %>
+      <img class="cover" src="<%= work.coverUrl %>" alt="Portada de <%= work.title %>">
+    <% } else { %>
+      <div class="cover cover-placeholder cover-<%= work.type %>" aria-hidden="true"><%= work.title.charAt(0) %></div>
+    <% } %>
+  </div>
+  <div class="work-detail-info">
+    <span class="badge badge-<%= work.type %>"><%= TYPE_LABELS[work.type] %></span>
+    <h1><%= work.title %></h1>
+    <p class="lead">
+      <%= work.type === 'pelicula' ? 'Dirigida por' : 'Escrito por' %> <strong><%= work.creator %></strong>
+      <%= work.year ? '· ' + work.year : '' %>
+    </p>
+    <p class="rating big">
+      <span class="stars"><%= stars(work.avgRating) %></span>
+      <% if (work.reviewCount) { %>
+        <strong><%= work.avgRating.toFixed(1) %></strong> <span class="muted">de 5 · <%= work.reviewCount %> <%= work.reviewCount === 1 ? 'reseña' : 'reseñas' %></span>
+      <% } else { %>
+        <span class="muted">Sin reseñas todavía</span>
+      <% } %>
+    </p>
+    <% if (work.genres.length) { %>
+      <p class="tags">
+        <% work.genres.forEach(function (g) { %><a class="tag" href="/works?genre=<%= encodeURIComponent(g) %>"><%= g %></a><% }) %>
+      </p>
+    <% } %>
+    <% if (work.synopsis) { %><p class="synopsis"><%= work.synopsis %></p><% } %>
+    <p class="muted small">Añadida por
+      <% if (work.createdBy) { %><a href="/users/<%= work.createdBy.username %>">@<%= work.createdBy.username %></a><% } else { %>un usuario eliminado<% } %>
+      el <%= formatDate(work.createdAt) %></p>
+
+    <% if (canEdit || canDelete) { %>
+      <div class="actions">
+        <% if (canEdit) { %><a href="/works/<%= work._id %>/edit" class="btn btn-ghost">Editar obra</a><% } %>
+        <% if (canDelete) { %>
+          <form action="/works/<%= work._id %>/delete" method="POST" class="inline-form js-confirm"
+            data-confirm="Se borrará la obra y todas sus reseñas. ¿Continuar?">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button type="submit" class="btn btn-danger">Borrar obra</button>
+          </form>
+        <% } %>
+      </div>
+    <% } %>
+  </div>
+</article>
+
+<section id="resenas" class="reviews-section">
+  <h2>Reseñas</h2>
+
+  <% if (!locals.currentUser) { %>
+    <p class="callout"><a href="/login">Inicia sesión</a> o <a href="/register">crea una cuenta</a> para escribir una reseña.</p>
+  <% } else if (userReview) { %>
+    <p class="callout">Ya has reseñado esta obra. <a href="/reviews/<%= userReview._id %>/edit">Editar mi reseña</a></p>
+  <% } else { %>
+    <form action="/works/<%= work._id %>/reviews" method="POST" class="review-form" id="nueva-resena" novalidate>
+      <h3>Escribe tu reseña</h3>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <%- include('../partials/reviewFields', { values: reviewValues, errors: reviewErrors }) %>
+      <button type="submit" class="btn">Publicar reseña</button>
+    </form>
+  <% } %>
+
+  <% if (reviews.items.length) { %>
+    <% reviews.items.forEach(function (review) { %>
+      <%- include('../partials/reviewCard', { review: review, showWork: false, redirectTo: '/works/' + work._id }) %>
+    <% }) %>
+    <% if (reviews.pages > 1) { %>
+      <nav class="pagination" aria-label="Paginación de reseñas">
+        <% if (reviews.page > 1) { %><a href="?page=<%= reviews.page - 1 %>#resenas">← Más recientes</a><% } %>
+        <span>Página <%= reviews.page %> de <%= reviews.pages %></span>
+        <% if (reviews.page < reviews.pages) { %><a href="?page=<%= reviews.page + 1 %>#resenas">Anteriores →</a><% } %>
+      </nav>
+    <% } %>
+  <% } else { %>
+    <p class="empty">Nadie ha reseñado esta obra todavía.</p>
+  <% } %>
+</section>
+
+<%- include('../partials/foot') %>

@@ -1,0 +1,62 @@
+<%- include('../partials/head') %>
+
+<section class="form-card">
+  <h1><%= work ? 'Editar obra' : 'Añadir obra' %></h1>
+  <form action="<%= work ? '/works/' + work._id + '/edit' : '/works' %>" method="POST" novalidate>
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+    <div class="field">
+      <span class="label">Tipo</span>
+      <div class="radio-group">
+        <label><input type="radio" name="type" value="pelicula" <%= values.type === 'pelicula' ? 'checked' : '' %>> Película</label>
+        <label><input type="radio" name="type" value="libro" <%= values.type === 'libro' ? 'checked' : '' %>> Libro</label>
+      </div>
+      <% if (errors.type) { %><p class="field-error"><%= errors.type %></p><% } %>
+    </div>
+
+    <div class="field">
+      <label for="title">Título</label>
+      <input id="title" name="title" type="text" maxlength="150" required value="<%= values.title %>" aria-invalid="<%= !!errors.title %>">
+      <% if (errors.title) { %><p class="field-error"><%= errors.title %></p><% } %>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label for="creator">Director/a o autor/a</label>
+        <input id="creator" name="creator" type="text" maxlength="100" required value="<%= values.creator %>" aria-invalid="<%= !!errors.creator %>">
+        <% if (errors.creator) { %><p class="field-error"><%= errors.creator %></p><% } %>
+      </div>
+      <div class="field field-small">
+        <label for="year">Año</label>
+        <input id="year" name="year" type="number" min="1800" max="2100" value="<%= values.year %>" aria-invalid="<%= !!errors.year %>">
+        <% if (errors.year) { %><p class="field-error"><%= errors.year %></p><% } %>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="genres">Géneros</label>
+      <input id="genres" name="genres" type="text" maxlength="200" value="<%= values.genres %>" placeholder="drama, ciencia ficción">
+      <p class="hint">Separados por comas (máximo 8).</p>
+      <% if (errors.genres) { %><p class="field-error"><%= errors.genres %></p><% } %>
+    </div>
+
+    <div class="field">
+      <label for="coverUrl">URL de la portada (opcional)</label>
+      <input id="coverUrl" name="coverUrl" type="url" maxlength="500" value="<%= values.coverUrl %>" placeholder="https://…" aria-invalid="<%= !!errors.coverUrl %>">
+      <% if (errors.coverUrl) { %><p class="field-error"><%= errors.coverUrl %></p><% } %>
+    </div>
+
+    <div class="field">
+      <label for="synopsis">Sinopsis</label>
+      <textarea id="synopsis" name="synopsis" rows="5" maxlength="2000" data-counter><%= values.synopsis %></textarea>
+      <% if (errors.synopsis) { %><p class="field-error"><%= errors.synopsis %></p><% } %>
+    </div>
+
+    <div class="actions">
+      <button type="submit" class="btn"><%= work ? 'Guardar cambios' : 'Añadir obra' %></button>
+      <a href="<%= work ? '/works/' + work._id : '/works' %>" class="btn btn-ghost">Cancelar</a>
+    </div>
+  </form>
+</section>
+
+<%- include('../partials/foot') %>
