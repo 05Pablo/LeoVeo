@@ -21,5 +21,18 @@ async function updateBio(user, bio) {
   return User.findByIdAndUpdate(user._id, { bio: String(bio || '').slice(0, 300) }, { new: true, runValidators: true });
 }
 
+async function listUsers() {
+  return User.find().sort({ createdAt: -1 }).lean();
+}
 
-module.exports = { getProfile, updateBio };
+async function setRole(targetId, role, actor) {
+  if (!actor || actor.role !== 'admin') throw AppError.forbidden();
+  if (!User.ROLES.includes(role)) throw AppError.badRequest('Rol no válido');
+  if (!mongoose.isValidObjectId(targetId)) throw AppError.notFound('Usuario no encontrado');
+  if (String(targetId) === String(actor._id)) throw AppError.badRequest('No puedes cambiar tu propio rol');
+  const user = await User.findByIdAndUpdate(targetId, { role }, { new: true });
+  if (!user) throw AppError.notFound('Usuario no encontrado');
+  return user;
+}
+
+module.exports = { getProfile, updateBio, listUsers, setRole };

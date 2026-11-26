@@ -21,6 +21,9 @@
         <a href="/works?type=libro">Libros</a>
         <% if (locals.currentUser) { %>
           <a href="/works/new" class="btn btn-small">+ Añadir obra</a>
+          <% if (currentUser.role === 'admin') { %>
+            <a href="/admin/users">Admin</a>
+          <% } %>
           <a href="/users/<%= currentUser.username %>" class="nav-user">@<%= currentUser.username %></a>
           <form action="/logout" method="POST" class="inline-form">
             <input type="hidden" name="_csrf" value="<%= locals.csrfToken %>">
