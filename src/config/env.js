@@ -21,5 +21,7 @@ module.exports = {
   SESSION_SECRET: sessionSecret,
   // Poner a true solo si la app se sirve por HTTPS (p. ej. detrás de un proxy con TLS)
   COOKIE_SECURE: process.env.COOKIE_SECURE === 'true',
+  // Número de proxies inversos delante de la app (0 = ninguno). Afecta a req.ip y al rate limit
+  TRUST_PROXY: parseInt(process.env.TRUST_PROXY, 10) || 0,
   BCRYPT_ROUNDS: parseInt(process.env.BCRYPT_ROUNDS, 10) || 12,
 };
