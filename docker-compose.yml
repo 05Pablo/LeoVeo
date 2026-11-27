@@ -2,6 +2,8 @@ services:
   mongo:
     image: mongo:7
     restart: unless-stopped
+    networks:
+      - leoveo-net
     volumes:
       - mongo-data:/data/db
     healthcheck:
@@ -20,6 +22,8 @@ services:
     depends_on:
       mongo:
         condition: service_healthy
+    networks:
+      - leoveo-net
     ports:
       - "${PORT:-3000}:3000"
     environment:
@@ -30,5 +34,11 @@ services:
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
       TRUST_PROXY: ${TRUST_PROXY:-0}
 
+# Red bridge privada: la app llega a la BD por su nombre de servicio ("mongo")
+networks:
+  leoveo-net:
+    driver: bridge
+
+# Volumen con nombre: los datos sobreviven aunque se borre el contenedor
 volumes:
   mongo-data:
