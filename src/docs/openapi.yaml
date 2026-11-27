@@ -1,0 +1,874 @@
+# Especificación OpenAPI 3 de la API de LeoVeo (tema 4).
+# Se sirve con Swagger UI en /api-docs y en JSON en /api-docs/openapi.json
+openapi: 3.0.3
+info:
+  title: LeoVeo API
+  description: |
+    API REST de LeoVeo, la aplicación de reseñas de películas y libros.
+
+    **Autenticación por sesión.** Haz `POST /auth/login` desde esta misma página (*Try it out*):
+    el navegador guarda la cookie `leoveo.sid` y la envía en las siguientes peticiones.
+
+    Las peticiones `POST`, `PUT` y `PATCH` deben llevar `Content-Type: application/json`.
+    Es una de las medidas anti-CSRF de la API.
+
+    Usuarios de ejemplo (tras `npm run seed`): `admin@leoveo.es / Admin1234` y `lucia@leoveo.es / Lucia1234`.
+  version: '1.0.0'
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+servers:
+- url: /api/v1
+  description: Este servidor
+tags:
+- name: sistema
+  description: Estado del servicio
+- name: auth
+  description: Registro, inicio y cierre de sesión
+- name: obras
+  description: Películas y libros
+- name: reseñas
+  description: Reseñas de las obras
+- name: usuarios
+  description: Perfiles públicos
+- name: admin
+  description: Solo administradores
+externalDocs:
+  description: README del proyecto
+  url: https://github.com/05Pablo/LeoVeo#readme
+paths:
+  /health:
+    get:
+      tags:
+      - sistema
+      summary: Estado del servicio y de la base de datos
+      responses:
+        '200':
+          description: Servicio en marcha
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  db:
+                    type: string
+                    enum:
+                    - up
+                    - down
+                  uptime:
+                    type: number
+                    example: 132.5
+  /auth/register:
+    post:
+      tags:
+      - auth
+      summary: Crear una cuenta e iniciar sesión
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterInput'
+      responses:
+        '201':
+          description: Cuenta creada. Devuelve la cookie de sesión
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /auth/login:
+    post:
+      tags:
+      - auth
+      summary: Iniciar sesión
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginInput'
+      responses:
+        '200':
+          description: Sesión iniciada. Devuelve la cookie de sesión
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: Email o contraseña incorrectos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /auth/logout:
+    post:
+      tags:
+      - auth
+      summary: Cerrar sesión
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: Sesión cerrada
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /auth/me:
+    get:
+      tags:
+      - auth
+      summary: Usuario autenticado
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Datos del usuario
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /works:
+    get:
+      tags:
+      - obras
+      summary: Listar y buscar obras
+      parameters:
+      - name: q
+        in: query
+        description: Texto a buscar en título y director/autor
+        schema:
+          type: string
+          maxLength: 100
+      - name: type
+        in: query
+        schema:
+          type: string
+          enum:
+          - pelicula
+          - libro
+      - name: genre
+        in: query
+        description: Un género exacto
+        schema:
+          type: string
+          example: drama
+      - name: sort
+        in: query
+        schema:
+          type: string
+          enum:
+          - recientes
+          - valoracion
+          - populares
+          - titulo
+          default: recientes
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          description: Página de resultados
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/Page'
+                - type: object
+                  properties:
+                    items:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Work'
+                    limit:
+                      type: integer
+                    sort:
+                      type: string
+    post:
+      tags:
+      - obras
+      summary: Crear una obra
+      security:
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkInput'
+      responses:
+        '201':
+          description: Obra creada
+          headers:
+            Location:
+              description: URL de la obra creada
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  work:
+                    $ref: '#/components/schemas/Work'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /genres:
+    get:
+      tags:
+      - obras
+      summary: Géneros existentes
+      responses:
+        '200':
+          description: Lista ordenada alfabéticamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  genres:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                    - animación
+                    - drama
+                    - thriller
+  /works/{id}:
+    parameters:
+    - $ref: '#/components/parameters/id'
+    get:
+      tags:
+      - obras
+      summary: Detalle de una obra
+      responses:
+        '200':
+          description: La obra
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  work:
+                    $ref: '#/components/schemas/Work'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+      - obras
+      summary: Modificar una obra (creador o admin)
+      security:
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkInput'
+      responses:
+        '200':
+          description: Obra actualizada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  work:
+                    $ref: '#/components/schemas/Work'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags:
+      - obras
+      summary: Borrar una obra y sus reseñas (admin)
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: Obra borrada
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /works/{id}/reviews:
+    parameters:
+    - $ref: '#/components/parameters/id'
+    get:
+      tags:
+      - reseñas
+      summary: Reseñas de una obra (más recientes primero)
+      parameters:
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          description: Página de reseñas
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/Page'
+                - type: object
+                  properties:
+                    items:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Review'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags:
+      - reseñas
+      summary: Reseñar una obra (una por usuario)
+      security:
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewInput'
+      responses:
+        '201':
+          description: Reseña creada. Se recalcula la nota media de la obra
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  review:
+                    $ref: '#/components/schemas/Review'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /reviews:
+    get:
+      tags:
+      - reseñas
+      summary: Últimas 10 reseñas de la plataforma
+      responses:
+        '200':
+          description: Lista de reseñas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Review'
+  /reviews/{id}:
+    parameters:
+    - $ref: '#/components/parameters/id'
+    get:
+      tags:
+      - reseñas
+      summary: Detalle de una reseña
+      responses:
+        '200':
+          description: La reseña
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  review:
+                    $ref: '#/components/schemas/Review'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+      - reseñas
+      summary: Modificar una reseña (solo su autor)
+      security:
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewInput'
+      responses:
+        '200':
+          description: Reseña actualizada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  review:
+                    $ref: '#/components/schemas/Review'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags:
+      - reseñas
+      summary: Borrar una reseña (autor o admin)
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: Reseña borrada
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /users/{username}:
+    get:
+      tags:
+      - usuarios
+      summary: Perfil público (sin email), estadísticas y reseñas
+      parameters:
+      - name: username
+        in: path
+        required: true
+        schema:
+          type: string
+          example: lucia
+      responses:
+        '200':
+          description: Perfil
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/PublicUser'
+                  stats:
+                    type: object
+                    properties:
+                      reviewCount:
+                        type: integer
+                        example: 4
+                      avgRating:
+                        type: number
+                        example: 4.5
+                  reviews:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Review'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /admin/users:
+    get:
+      tags:
+      - admin
+      summary: Listar usuarios
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Usuarios (sin contraseñas)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /admin/users/{id}/role:
+    patch:
+      tags:
+      - admin
+      summary: Cambiar el rol de un usuario (no el propio)
+      security:
+      - cookieAuth: []
+      parameters:
+      - $ref: '#/components/parameters/id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - role
+              properties:
+                role:
+                  type: string
+                  enum:
+                  - user
+                  - admin
+      responses:
+        '200':
+          description: Rol cambiado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Rol no válido o intento de cambiar el propio rol
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: leoveo.sid
+      description: Cookie de sesión httpOnly que devuelven /auth/login y /auth/register
+  parameters:
+    id:
+      name: id
+      in: path
+      required: true
+      description: ObjectId de MongoDB (24 caracteres hexadecimales)
+      schema:
+        type: string
+        pattern: '^[a-f0-9]{24}$'
+        example: 665f1c2a9b1e8a0012345678
+    page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 50
+  responses:
+    Unauthorized:
+      description: No has iniciado sesión
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Debes iniciar sesión
+    Forbidden:
+      description: Sin permiso (rol o propietario)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: No tienes permiso para realizar esta acción
+    NotFound:
+      description: Recurso no encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Obra no encontrada
+    Conflict:
+      description: El recurso ya existe (email repetido, reseña duplicada)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UnsupportedMediaType:
+      description: Falta Content-Type application/json
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ValidationError:
+      description: Datos no válidos, con el detalle por campo
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Datos no válidos
+            details:
+              rating: La puntuación va de 1 a 5
+              body: Entre 10 y 3000 caracteres
+    TooManyRequests:
+      description: Demasiados intentos
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        details:
+          type: object
+          additionalProperties:
+            type: string
+    Page:
+      type: object
+      properties:
+        total:
+          type: integer
+          example: 10
+        page:
+          type: integer
+          example: 1
+        pages:
+          type: integer
+          example: 1
+    RegisterInput:
+      type: object
+      required:
+      - username
+      - email
+      - password
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 30
+          pattern: '^[a-zA-Z0-9_]+$'
+          example: pablo
+        email:
+          type: string
+          format: email
+          example: pablo@example.com
+        password:
+          type: string
+          minLength: 8
+          maxLength: 72
+          description: Al menos una letra y un número
+          example: Secreta123
+        passwordConfirm:
+          type: string
+          description: Opcional; si se envía debe coincidir
+    LoginInput:
+      type: object
+      required:
+      - email
+      - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: lucia@leoveo.es
+        password:
+          type: string
+          example: Lucia1234
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+        username:
+          type: string
+          example: lucia
+        email:
+          type: string
+          example: lucia@leoveo.es
+        role:
+          type: string
+          enum:
+          - user
+          - admin
+        bio:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    PublicUser:
+      type: object
+      properties:
+        _id:
+          type: string
+        username:
+          type: string
+          example: lucia
+        role:
+          type: string
+          enum:
+          - user
+          - admin
+        bio:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    UserResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+    WorkInput:
+      type: object
+      required:
+      - title
+      - type
+      - creator
+      properties:
+        title:
+          type: string
+          maxLength: 150
+          example: Matrix
+        type:
+          type: string
+          enum:
+          - pelicula
+          - libro
+        creator:
+          type: string
+          maxLength: 100
+          description: Director/a o autor/a
+          example: Lana y Lilly Wachowski
+        year:
+          type: integer
+          minimum: 1800
+          maximum: 2100
+          example: 1999
+        genres:
+          description: Lista o texto separado por comas (máximo 8)
+          oneOf:
+          - type: array
+            items:
+              type: string
+          - type: string
+          example:
+          - ciencia ficción
+          - acción
+        synopsis:
+          type: string
+          maxLength: 2000
+        coverUrl:
+          type: string
+          format: uri
+          description: Solo http(s)
+    Work:
+      allOf:
+      - $ref: '#/components/schemas/WorkInput'
+      - type: object
+        properties:
+          _id:
+            type: string
+          avgRating:
+            type: number
+            minimum: 0
+            maximum: 5
+            readOnly: true
+            example: 4.5
+          reviewCount:
+            type: integer
+            readOnly: true
+            example: 2
+          createdBy:
+            description: Id del creador (o el objeto con su username en el detalle)
+            oneOf:
+            - type: string
+            - type: object
+              properties:
+                _id:
+                  type: string
+                username:
+                  type: string
+          createdAt:
+            type: string
+            format: date-time
+          updatedAt:
+            type: string
+            format: date-time
+    ReviewInput:
+      type: object
+      required:
+      - rating
+      - title
+      - body
+      properties:
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+          example: 4
+        title:
+          type: string
+          maxLength: 100
+          example: Muy recomendable
+        body:
+          type: string
+          minLength: 10
+          maxLength: 3000
+          example: Me ha gustado mucho la ambientación.
+    Review:
+      allOf:
+      - $ref: '#/components/schemas/ReviewInput'
+      - type: object
+        properties:
+          _id:
+            type: string
+          work:
+            description: Id de la obra (o el objeto con título y tipo)
+            oneOf:
+            - type: string
+            - type: object
+              properties:
+                _id:
+                  type: string
+                title:
+                  type: string
+                type:
+                  type: string
+          author:
+            type: object
+            properties:
+              _id:
+                type: string
+              username:
+                type: string
+          createdAt:
+            type: string
+            format: date-time
+          updatedAt:
+            type: string
+            format: date-time

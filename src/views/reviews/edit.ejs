@@ -1,0 +1,16 @@
+<%- include('../partials/head') %>
+
+<section class="form-card">
+  <h1>Editar reseña</h1>
+  <p class="muted">sobre <a href="/works/<%= review.work._id %>"><%= review.work.title %></a></p>
+  <form action="/reviews/<%= review._id %>/edit" method="POST" class="review-form" novalidate>
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <%- include('../partials/reviewFields', { values: values, errors: errors }) %>
+    <div class="actions">
+      <button type="submit" class="btn">Guardar cambios</button>
+      <a href="/works/<%= review.work._id %>#resenas" class="btn btn-ghost">Cancelar</a>
+    </div>
+  </form>
+</section>
+
+<%- include('../partials/foot') %>

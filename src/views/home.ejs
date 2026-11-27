@@ -2,8 +2,54 @@
 
 <section class="hero">
   <div>
-    <h1>LeoVeo</h1>
-    <p class="lead">Reseñas de películas y libros. Próximamente.</p>
+    <h1>Lo que lees. Lo que ves. Lo que opinas.</h1>
+    <p class="lead">LeoVeo es una comunidad para reseñar películas y libros, descubrir qué merece la pena y llevar tu propio registro.</p>
+    <form action="/works" method="GET" class="search-hero" role="search">
+      <label for="q" class="sr-only">Buscar</label>
+      <input id="q" name="q" type="search" placeholder="Busca un título, director o autor…" maxlength="100" autocomplete="off" data-autocomplete>
+      <button type="submit" class="btn">Buscar</button>
+    </form>
+    <% if (!locals.currentUser) { %>
+      <p class="muted"><a href="/register">Crea una cuenta</a> para escribir tus propias reseñas.</p>
+    <% } %>
+  </div>
+</section>
+
+<section>
+  <div class="section-head">
+    <h2>Mejor valoradas</h2>
+    <a href="/works?sort=valoracion">Ver todas →</a>
+  </div>
+  <% if (topRated.length) { %>
+    <div class="grid">
+      <% topRated.forEach(function (work) { %><%- include('partials/workCard', { work: work }) %><% }) %>
+    </div>
+  <% } else { %>
+    <p class="empty">Todavía no hay obras valoradas.</p>
+  <% } %>
+</section>
+
+<section class="two-cols">
+  <div>
+    <div class="section-head"><h2>Últimas reseñas</h2></div>
+    <% if (latestReviews.length) { %>
+      <% latestReviews.forEach(function (review) { %>
+        <%- include('partials/reviewCard', { review: review, showWork: true, redirectTo: '' }) %>
+      <% }) %>
+    <% } else { %>
+      <p class="empty">Aún no hay reseñas. ¡Sé el primero!</p>
+    <% } %>
+  </div>
+  <div>
+    <div class="section-head"><h2>Añadidas recientemente</h2></div>
+    <ul class="simple-list">
+      <% latestWorks.forEach(function (w) { %>
+        <li>
+          <a href="/works/<%= w._id %>"><%= w.title %></a>
+          <span class="badge badge-<%= w.type %>"><%= TYPE_LABELS[w.type] %></span>
+        </li>
+      <% }) %>
+    </ul>
   </div>
 </section>
 

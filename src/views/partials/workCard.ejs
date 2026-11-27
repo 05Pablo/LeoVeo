@@ -1,0 +1,18 @@
+<article class="work-card">
+  <a href="/works/<%= work._id %>" class="work-card-link">
+    <% if (work.coverUrl) { %>
+      <img class="cover" src="<%= work.coverUrl %>" alt="Portada de <%= work.title %>" loading="lazy">
+    <% } else { %>
+      <div class="cover cover-placeholder cover-<%= work.type %>" aria-hidden="true"><%= work.title.charAt(0) %></div>
+    <% } %>
+    <div class="work-card-body">
+      <span class="badge badge-<%= work.type %>"><%= TYPE_LABELS[work.type] %></span>
+      <h3><%= work.title %></h3>
+      <p class="muted"><%= work.creator %><%= work.year ? ' · ' + work.year : '' %></p>
+      <p class="rating" aria-label="Valoración media <%= work.avgRating %> de 5">
+        <span class="stars"><%= stars(work.avgRating) %></span>
+        <span class="muted"><%= work.reviewCount ? work.avgRating.toFixed(1) + ' (' + work.reviewCount + ')' : 'Sin reseñas' %></span>
+      </p>
+    </div>
+  </a>
+</article>
