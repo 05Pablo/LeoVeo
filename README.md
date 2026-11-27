@@ -6,23 +6,23 @@ Proyecto de la asignatura **Programación de Servidores Web**.
 
 | | |
 |---|---|
-| **Frontend** | HTML + CSS + JavaScript, vistas renderizadas con EJS |
-| **Backend** | Node.js 20 + Express 4, arquitectura MVC con capa de servicios |
-| **Base de datos** | MongoDB 7 con Mongoose |
-| **Autenticación** | Sesiones con `express-session` guardadas en MongoDB (`connect-mongo`), contraseñas con bcrypt |
-| **Seguridad** | Helmet (CSP y cabeceras), CSRF, rate limiting, validación con express-validator, saneado anti inyección NoSQL |
-| **Despliegue** | Docker + Docker Compose |
-| **API** | REST JSON versionada en `/api/v1`, documentada con OpenAPI 3 · Swagger UI en `/api-docs` · ver [docs/API.md](docs/API.md) |
+| **Frontend** | HTML + CSS + JavaScript *(Explicado en el Tema 2)*, vistas renderizadas con EJS *(Explicado en el Tema 3)* |
+| **Backend** | Node.js 20 + Express 4, arquitectura MVC con capa de servicios *(Explicado en el Tema 3)* |
+| **Base de datos** | MongoDB 7 con Mongoose *(Explicado en el Tema 5)* |
+| **Autenticación** | Sesiones con `express-session` guardadas en MongoDB (`connect-mongo`), contraseñas con bcrypt *(Explicado en el Tema 6)* |
+| **Seguridad** | Helmet (CSP y cabeceras), CSRF, rate limiting, validación con express-validator, saneado anti inyección NoSQL *(Explicado en los Temas 3 y 6)* |
+| **Despliegue** | Docker + Docker Compose *(Explicado en el Tema 7)* |
+| **API** | REST JSON versionada en `/api/v1`, documentada con OpenAPI 3 · Swagger UI en `/api-docs` · ver [docs/API.md](docs/API.md) *(Explicado en el Tema 4)* |
 
 ## Funcionalidades
 
-- Registro, inicio y cierre de sesión.
-- Buscador con **sugerencias en directo** mientras escribes (JavaScript con `fetch` contra la API).
-- Catálogo de obras con búsqueda por texto, filtros por tipo y género, ordenación y paginación.
+- Registro, inicio y cierre de sesión *(Explicado en el Tema 6)*.
+- Buscador con **sugerencias en directo** mientras escribes (JavaScript con `fetch` contra la API) *(Explicado en los Temas 2 y 3)*.
+- Catálogo de obras con búsqueda por texto, filtros por tipo y género, ordenación y paginación *(Explicado en los Temas 3 y 5)*.
 - Ficha de cada obra con nota media, número de reseñas y listado de reseñas.
 - Crear, editar y borrar reseñas propias (una por obra y usuario).
 - Perfil público de cada usuario con sus reseñas y estadísticas; edición de la bio propia.
-- **Roles y permisos**:
+- **Roles y permisos** (RBAC y control por propietario) *(Explicado en el Tema 6)*:
 
 | Acción | Visitante | Usuario | Autor del recurso | Admin |
 |---|:---:|:---:|:---:|:---:|
@@ -36,12 +36,12 @@ Proyecto de la asignatura **Programación de Servidores Web**.
 
 ## Puesta en marcha con Docker (recomendado)
 
-Requisitos: Docker Desktop (o Docker Engine + Compose v2).
+Contenedores con Docker y Docker Compose *(Explicado en el Tema 7)*. Requisitos: Docker Desktop (o Docker Engine + Compose v2).
 
 ```bash
-git clone https://github.com/<usuario>/leoveo.git
-cd leoveo
-cp .env.example .env
+git clone https://github.com/05Pablo/LeoVeo.git
+cd LeoVeo
+cp .env.example .env                # en Windows (PowerShell): Copy-Item .env.example .env
 # Edita .env y pon un SESSION_SECRET largo y aleatorio:
 #   node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 
@@ -70,7 +70,7 @@ docker compose down -v                          # parar y borrar la base de dato
 
 ## Puesta en marcha en local (sin Docker)
 
-Requisitos: Node.js 20 o superior y una instancia de MongoDB (local o Atlas).
+Requisitos: Node.js 20 o superior *(Explicado en el Tema 3)* y una instancia de MongoDB, local o Atlas *(Explicado en el Tema 5)*.
 
 ```bash
 npm install
@@ -82,6 +82,8 @@ npm run dev              # arranca con recarga automática
 > Tras el primer `npm install` se genera `package-lock.json`: súbelo al repositorio para que todo el equipo y Docker usen exactamente las mismas versiones.
 
 ### Variables de entorno
+
+La configuración y los secretos van en `.env`, fuera del código y del repositorio *(Explicado en los Temas 5 y 7)*.
 
 | Variable | Descripción | Por defecto |
 |---|---|---|
@@ -95,6 +97,8 @@ npm run dev              # arranca con recarga automática
 
 ### Scripts
 
+Scripts de npm definidos en `package.json` *(Explicado en el Tema 3)*.
+
 | Script | Qué hace |
 |---|---|
 | `npm start` | Arranca el servidor |
@@ -103,6 +107,8 @@ npm run dev              # arranca con recarga automática
 | `npm run check` | Comprueba la sintaxis de todos los ficheros JS |
 
 ## Estructura del proyecto
+
+Organización MVC: modelos, vistas y controladores, más una capa de servicios *(Explicado en el Tema 3)*.
 
 ```
 leoveo/
@@ -130,7 +136,7 @@ leoveo/
 
 ## Uso de la API (ejemplo rápido)
 
-La API usa la misma sesión que la web (cookie `leoveo.sid`). Con `curl`:
+API REST con recursos, verbos HTTP y códigos de estado *(Explicado en el Tema 4)*. Usa la misma sesión que la web (cookie `leoveo.sid`) *(Explicado en el Tema 6)*. Con `curl`:
 
 ```bash
 # Iniciar sesión y guardar la cookie
@@ -151,7 +157,7 @@ Documentación completa: **[docs/API.md](docs/API.md)** y, con la app en marcha,
 
 ## Trabajo en equipo
 
-Flujo de ramas, convención de commits y revisión de Pull Requests en **[CONTRIBUTING.md](CONTRIBUTING.md)**.
+Flujo de ramas, convención de commits y revisión de Pull Requests en **[CONTRIBUTING.md](CONTRIBUTING.md)** *(Explicado en el Tema 1)*.
 
 ## Autores
 
